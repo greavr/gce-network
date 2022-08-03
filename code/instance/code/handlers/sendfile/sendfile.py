@@ -1,14 +1,17 @@
+from ast import Pass
 import socket
 import tqdm
 import os
+import logging
 
 import config
 
 
-def send_file(filename):
+def send_file(filename: str, tartget_server: str):
+    """ Function to send file to target server. This then calls server shutdown"""
     try:
         # get port
-        host = "127.0.0.1"
+        host = tartget_server
         port = config.server_port
         seperator = config.seperator
         buffer_size = config.buffer_size
@@ -16,9 +19,9 @@ def send_file(filename):
         filesize = os.path.getsize(filename)
         # create the client socket
         s = socket.socket()
-        print(f"[+] Connecting to {host}:{port}")
+        logging.info(f"[+] Connecting to {host}:{port}")
         s.connect((host, port))
-        print("[+] Connected.")
+        logging.info("[+] Connected.")
 
         # send the filename and filesize
         s.send(f"{filename}{seperator}{filesize}".encode())
@@ -41,4 +44,9 @@ def send_file(filename):
         # close the socket
         s.close()
     except Exception as e:
-        print(e)
+        logging.ERROR(f"send_file error: {e}")
+
+    # TODO ADD SERVER SHUTDOWN CODE
+    if config.shutdown_after_transfer:
+        # Should kill server
+        Pass

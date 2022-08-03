@@ -3,12 +3,26 @@
 This code is designed to run on the instance. It handles the following: 
 
  - First in chain creates file of set size (using random garbage as content)
- - Created the target instance, either:
-   - Random choice from region list
-   - Target instance region / zone list value set TBD
+ - sets new instance class to be the same as current
+ - Created the target instance zone to be random
  - After instance is created transfers the file to target server
  - After transfer is complete instance self terminates
 
+
+## Fire store entries
+- Start of the chain:
+  - created date/time
+  - start zone
+  - file name
+  - file size
+  - current node-type
+  - sets next instance zone to random
+  - sets new instance size to same as current
+- Create new instance:
+  - history:
+    - instance location
+    - instance created
+- Transfer 
 ## Python Transfer
  - Using Sockets and tqdm
 
@@ -38,6 +52,7 @@ This code is designed to run on the instance. It handles the following:
 pip3 install virtualenv
 python3 -m virtualenv venv
 source venv/bin/activate
+GCP_PROJECT=$(gcloud config get project)
 pip3 install -r code/requirements.txt
 python3 code/main.py
 ```

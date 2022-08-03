@@ -2,10 +2,15 @@ import socket
 import tqdm
 import threading
 import os
+import logging
+import datetime
 
 import config
+from handlers.firestore import firestore
 
 def start_server():
+    """ Function to start recieving server in background thread"""
+    firestore.add_data(collection=config.file_chain_id,doc_id=config.server_name,data_to_add={"starting-server":datetime.datetime.now(tz=datetime.timezone.utc)})
     x = threading.Thread( target=recieve_file, args=(0,))
     x.start()
 
@@ -23,11 +28,12 @@ def recieve_file(name):
     # 5 here is the number of unaccepted connections that
     # the system will allow before refusing new connections
     s.listen(5)
-    print(f"[*] Listening as {SERVER_HOST}:{port}")
+    logging.info(f"[*] Listening as {SERVER_HOST}:{port}")
     # accept connection if there is any
     client_socket, address = s.accept() 
     # if below code is executed, that means the sender is connected
-    print(f"[+] {address} is connected.")
+    logging.info(f"[+] {address} is connected.")
+    firestore.add_data(collection=config.file_chain_id,doc_id=config.server_name,data_to_add={"client-connected":datetime.datetime.now(tz=datetime.timezone.utc)})
 
     # receive the file infos
     # receive using client socket, not server socket
@@ -42,6 +48,8 @@ def recieve_file(name):
     progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
     with open("file/" + filename, "wb") as f:
         while True:
+            # Log data transfer started
+            firestore.add_data(collection=config.file_chain_id,doc_id=config.server_name,data_to_add={"transfer-started":datetime.datetime.now(tz=datetime.timezone.utc)})
             # read 1024 bytes from the socket (receive)
             bytes_read = client_socket.recv(BUFFER_SIZE)
             if not bytes_read:    
@@ -55,6 +63,7 @@ def recieve_file(name):
 
     # close the client socket
     client_socket.close()
+    firestore.add_data(collection=config.file_chain_id,doc_id=config.server_name,data_to_add={"transfer-complete":datetime.datetime.now(tz=datetime.timezone.utc)})
     # close the server socket
     s.close()
-    print(f"File recived complete: 'file/{filename}'")
+    logging.info(f"File transfer complete: 'file/{filename}'")

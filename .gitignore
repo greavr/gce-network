@@ -170,3 +170,4 @@ terraform.rc
 *.json
 
 *code.zip
+*sample-file
